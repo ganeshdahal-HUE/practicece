@@ -1,211 +1,1158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>General Knowledge Quiz</title>
-    <!-- Tailwind CSS CDN -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balen Scholarship - Prep Portal</title>
+    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM for building the UI -->
+    <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" />
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2canvas for downloading images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #e2e8f0;
-        }
-        .quiz-container {
-            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%2394a3b8" fill-opacity="0.2"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6zm30 0V0h-2v4h-4v2h4v4h2V6h4V4h-4zM36 40v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 40v-4H4v4H0v2h4v4h2v-4h4v-2H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
-        }
+        body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; }
+        /* Animations */
+        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+        .animate-bounceIn { animation: bounceIn 0.8s ease-out; }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes superPop { 0% { transform: scale(0.97); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-superPop { animation: superPop 0.4s ease-out; }
+        @keyframes tada { 0% {transform: scale(1);} 10%, 20% {transform: scale(0.9) rotate(-3deg);} 30%, 50%, 70%, 90% {transform: scale(1.1) rotate(3deg);} 40%, 60%, 80% {transform: scale(1.1) rotate(-3deg);} 100% {transform: scale(1) rotate(0);} }
+        .animate-tada { animation: tada 1s ease-in-out; }
+        /* Common UI polish */
+        .gradient-button { background: linear-gradient(45deg, #4f46e5, #9333ea); transition: transform .25s, box-shadow .25s; }
+        .gradient-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,70,229,.45); }
+        .gradient-button:disabled { background: #9ca3af; cursor: not-allowed; }
+        .card-hover { transition: transform .25s, box-shadow .25s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 18px 32px rgba(0,0,0,.15); }
+        .nav-button.active { background: linear-gradient(45deg, #4338ca, #7e22ce); box-shadow: 0 6px 18px rgba(79,70,229,.45); transform: translateY(-1px); }
+        .header-gradient { background: linear-gradient(90deg, #0f172a, #1e3a8a, #312e81); }
+        .footer-gradient { background: linear-gradient(90deg, #312e81, #1e3a8a, #0f172a); }
+        .section-heading { color: #dc2626; }
+        .quiz-progress-bar { height: 12px; border-radius: 6px; background-color: #e5e7eb; overflow: hidden; }
+        .quiz-progress-fill { height: 100%; background: linear-gradient(45deg, #22c55e, #84cc16); border-radius: 6px; transition: width .5s ease-in-out; }
+        .overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,.7); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; backdrop-filter: blur(4px); }
+        .message-box, .modal-box { background: white; padding: 2rem; border-radius: .75rem; box-shadow: 0 10px 25px rgba(0,0,0,.3); text-align: center; color: #111827; animation: superPop .3s ease-out; max-width: 90%; width: 460px; }
+        .video-player-modal { background: black; padding: 0; border-radius: .75rem; overflow: hidden; width: 90vw; height: 50.625vw; max-width: 960px; max-height: 540px; display: flex; position: relative; }
+        .video-player-modal .close-button { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,.3); color: white; border: none; border-radius: 9999px; width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.1rem; cursor: pointer; z-index: 1001; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, Fragment } = React;
 
-    <!-- Main Quiz Container -->
-    <div id="quiz-container" class="bg-white rounded-xl shadow-2xl p-8 max-w-xl w-full text-center transform transition-all duration-300">
-
-        <!-- Logo -->
-        <div class="mb-6">
-            <img src="https://raw.githubusercontent.com/ganeshdahal-HUE/practicece/1fa477b17f70aa4680dc5681c4de27721b636685/382167751_847430806851243_2276443732250154512_n.jpg"
-                 alt="Quiz Website Logo"
-                 class="w-32 h-32 object-cover rounded-full mx-auto border-4 border-white shadow-md">
-        </div>
-
-        <h1 id="quiz-title" class="text-3xl font-bold text-gray-800 mb-6">General Knowledge Quiz</h1>
-
-        <!-- Question Display -->
-        <p id="question-text" class="text-xl text-gray-700 mb-6 font-semibold">Question will appear here...</p>
-
-        <!-- Answer Options -->
-        <div id="options-container" class="grid gap-4">
-            <!-- Buttons will be generated here by JavaScript -->
-        </div>
-
-        <!-- Feedback and Score -->
-        <div id="feedback-container" class="mt-6">
-            <p id="feedback-text" class="text-lg font-semibold h-6 text-gray-600"></p>
-            <p id="score-text" class="text-xl font-bold text-blue-600 mt-2">Score: 0</p>
-        </div>
-
-        <!-- Next Button -->
-        <button id="next-button"
-                class="mt-6 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                style="display: none;">
-            Next Question
-        </button>
-
-    </div>
-
-    <script>
-        // Array of quiz questions
-        const questions = [
-            {
-                question: "What is the capital of France?",
-                options: ["Berlin", "Madrid", "Paris", "Rome"],
-                correctAnswer: "Paris"
-            },
-            {
-                question: "Which planet is known as the Red Planet?",
-                options: ["Earth", "Mars", "Jupiter", "Venus"],
-                correctAnswer: "Mars"
-            },
-            {
-                question: "What is the largest ocean on Earth?",
-                options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
-                correctAnswer: "Pacific Ocean"
-            },
-            {
-                question: "Who wrote 'To Kill a Mockingbird'?",
-                options: ["Harper Lee", "Mark Twain", "Ernest Hemingway", "J.K. Rowling"],
-                correctAnswer: "Harper Lee"
-            },
-            {
-                question: "What is the chemical symbol for gold?",
-                options: ["Au", "Ag", "Fe", "Pb"],
-                correctAnswer: "Au"
-            }
+        // ===== DATA =====
+        const siteNotifications = [
+            { id: 1, message: 'Welcome to the new and improved Prep Portal! All sections are now mobile-friendly.', type: 'success', isDismissible: true },
+            { id: 2, message: 'A new <strong>Quiz Competition</strong> is live every Monday, Wednesday, and Saturday at 8 AM. Check the tab to join!', type: 'info', isDismissible: true },
+        ];
+        const validSymbolNumbers = ['S001', 'S002', 'S003', '021052854', '04803820', 'S004', 'S005', '03607811', '4444', '7777', 'S006', 'S007', 'S008', 'S009', 'S010'];
+        const dailyQuizzes = [
+            { day: 1, subject: "Mixed", title: "Mixed Subject Challenge", link: "https://ganeshdahal-hue.github.io/mix/" },
+            { day: 2, subject: "Science", title: "Physics Practice Test", link: "https://ganeshdahal-hue.github.io/physis/" },
+            { day: 3, subject: "English", title: "Grammar Essentials", link: "https://ganeshdahal-hue.github.io/english/" },
+            { day: 4, subject: "GK", title: "World Geography", link: "https://ganeshdahal-hue.github.io/GK/" },
+            { day: 5, subject: "Science", title: "Physics Fundamentals", link: "https://ganeshdahal-hue.github.io/physic/" },
+            { day: 6, subject: "Math", title: "Geometry Challenge", link: "https://ganeshdahal-hue.github.io/mathematic/" },
+            { day: 7, subject: "English", title: "Vocabulary Boost", link: "https://ganeshdahal-hue.github.io/english-set/" },
+            { day: 8, subject: "GK", title: "History Trivia", link: "https://ganeshdahal-hue.github.io/GKK-/" },
+            { day: 9, subject: "Science", title: "Biology Essentials", link: "https://ganeshdahal-hue.github.io/chemistry/" },
+            { day: 10, subject: "English", title: "Reading Comprehension", link: "https://ganeshdahal-hue.github.io/grammar/" },
+            { day: 11, subject: "GK", title: "Science Trivia", link: "https://ganeshdahal-hue.github.io/GK-2/" },
+            { day: 12, subject: "Science", title: "Physics Advanced", link: "https://ganeshdahal-hue.github.io/physicscience-/" },
+            { day: 13, subject: "Scholarship", title: "Scholarship Strategies", link: "https://ganeshdahal-hue.github.io/scholarship-/" },
+            { day: 14, subject: "Scholarship", title: "Balen Exam Insights", link: "https://ganeshdahal-hue.github.io/balenscholar/" },
+            { day: 15, subject: "Scholarship", title: "Balen Prep Challenge", link: "https://ganeshdahal-hue.github.io/balenscholarshipp/" },
+            { day: 16, subject: "Mixed", title: "General Knowledge Mastery", link: "https://ganeshdahal-hue.github.io/GKK/" },
+            { day: 17, subject: "Scholarship", title: "Mixed Subject Challenge", link: "https://ganeshdahal-hue.github.io/Balen-quizz-/" },
+            { day: 18, subject: "Scholarship", title: "Balen Success Guide", link: "https://ganeshdahal-hue.github.io/balenganesh/" },
+            { day: 19, subject: "Science", title: "Biology Deep Dive", link: "https://ganeshdahal-hue.github.io/biology-deep-dive/" },
+            { day: 20, subject: "Mixed", title: "Knowledge Booster", link: "https://ganeshdahal-hue.github.io/newwquiz/" },
+        ];
+        const resources = [
+            { category: "Premium Materials", items: [
+                { title: "Bridge Course Book", link: "https://drive.google.com/file/d/1lUuQUNbDakJIGCUPdDJ4Dt9z_iBNxf07/view?usp=sharing" },
+                { title: "Advance Mathematics Book", link: "https://drive.google.com/file/d/1DpIqrtanBnn5cWdXPCY6c18NdtnwKGRl/view?usp=sharing" },
+                { title: "Mathematics Book", link: "https://drive.google.com/file/d/1yfgpjpx9nIQAn9bpkB9CN2KnWJAWRbuU/view?usp=drive_link" },
+                { title: "Saint Xavier 20 Practice Set", link: "https://drive.google.com/drive/folders/1AnPNaUzF69Ctqk5nz_j0WPPn2ThMV4ui?usp=drive_link" },
+                { title: "Saint Xavier Past Year Question", link: "https://drive.google.com/file/d/1XBcSL3UYqlrdqnJlQ_VIdKb8mRjXAluE/view?usp=sharing" },
+                { title: "Saint Xavier Part 2", link: "https://drive.google.com/file/d/1-ZfsuTCMjGolTbS0omu1Wo7Wdaj_3TXO/view" },
+                { title: "Top 300 MCQs", link: "https://drive.google.com/file/d/1wakykGdveh3O5EN7y05DUChBKYs9HW3V/view?usp=sharing" },
+                { title: "Grammar Book", link: "https://drive.google.com/file/d/1uAVP1zG21d8To6SeLuQT_2L_A_8R7L5m/view?usp=drive_link" },
+                { title: "Fix MCQs Sets", link: "https://drive.google.com/drive/folders/1izAJI6A4par4qM0c5q-jjiZvWK2xRF9z?usp=drive_link" },
+                { title: "New MCQs Set", link: "https://drive.google.com/drive/folders/1YiFTUm5HYyeIqeCYPw_yBsmfaV91a8JP?usp=drive_link" },
+                { title: "Science All Chapter Notes", link: "https://drive.google.com/drive/folders/1t5JGigm1OkFJ9T64IEMuVqR1a_FEutkI?usp=drive_link" },
+                { title: "Grammar Tips", link: "https://drive.google.com/drive/folders/1yfCKCdSrWORe6ZV0yJiLwLFBI5xZGt5-?usp=drive_link" },
+                { title: "Science chapter wise MCQs", link: "https://drive.google.com/file/d/1eazkSqbO_J6PanBj7-sPdzMDd-uEuR3j/view?usp=sharing" },
+                { title: "Entrance Question", link: "https://drive.google.com/file/d/1aACIunJxfDtSeQdAAU-vXhwUMxp78Jky/view?usp=drive_link" },
+                { title: "Special Book for Balen Scholarship", link: "https://drive.google.com/file/d/1EPjk91zWWl-OHOqawwvJJhnHma9RveE7/view?usp=sharing" },
+                { title: "Grammar MCQs", link: "https://drive.google.com/file/d/1A3-Hlv1dmh9aSrqNxms3qP-upFEJ6nCg/view?usp=drive_link" },
+                { title: "Balen Entrance qn 2082", link: "https://drive.google.com/file/d/1aACIunJxfDtSeQdAAU-vXhwUMxp78Jky/view?usp=drive_link" },
+                { title: "Daily Updated PDF", link: "https://drive.google.com/drive/folders/1NQFdxJ0uYwOMpVcD-TKFZ4-zB5Xb70Ru?usp=sharing" },
+            ] },
+            { category: "Free Resources", items: [
+                { title: "Daily Updated PDF", link: "https://drive.google.com/drive/folders/1On-EmwuZ6yyRFKixIneRA9ZjLsX_ally?usp=drive_link" },
+                { title: "Sample Questions", link: "https://drive.google.com/file/d/1DksWWHY6JQUFzOy2Jv97HPlsgD0WNHVo/view?usp=drive_link" },
+                { title: "SEE Gear Up Book", link: "https://drive.google.com/file/d/1uypKarUcoYgDnD0pISv96-8r9UTKhU6O/view?usp=sharing" },
+                { title: "Model Questions 1", link: "https://drive.google.com/file/d/1vs5IwyLGL_h1WtpfkMUrlEicz2lbUtZ/view?usp=drive_link" },
+                { title: "Model Questions 2", link: "https://drive.google.com/file/d/1VEmPFVN_ZruogYemjKFv5Pw5tb_RL25X/view?usp=drive_link" },
+                { title: "Model Questions 3", link: "https://drive.google.com/file/d/1bFB8XA_SqYgBLvR-biEw1OLJwjJDB4UY/view?usp=drive_link" },
+                { title: "Model Questions 4", link: "https://drive.google.com/file/d/1qJvS-MFKSsbI_Vye-sv45kbEtjQo4SSY/view?usp=drive_link" },
+                { title: "Model Questions 5", link: "https://drive.google.com/file/d/1nK1474vztSurABVBiH-EwtwiwTLMgNrI/view?usp=drive_link" },
+                { title: "Model Questions 6", link: "https://drive.google.com/file/d/1nK1474vztSurABVBiH-EwtwiwTLMgNrI/view?usp=drive_link" },
+                { title: "Model Questions 7", link: "https://drive.google.com/file/d/1m_RMONzS7jPTm2i3sTc9VopsEAIIkbsK/view?usp=drive_link" },
+                { title: "Model Questions 8", link: "https://drive.google.com/file/d/1zDsA2krNOYrm5XNzOu-kLavS4U_0iatl/view?usp=drive_link" },
+                { title: "Model Questions 9", link: "https://drive.google.com/file/d/1_IbfFZmISnOScLtJofMr4fjGli50bUyy/view?usp=drive_link" },
+                { title: "Model Questions 11", link: "https://drive.google.com/file/d/1gi6njpTeM-JNYRm7ezkBxFQpJDbkMib-/view?usp=drive_link" },
+                { title: "Grammar MCQs", link: "https://drive.google.com/file/d/1qJvS-MFKSsbI_Vye-sv45kbEtjQo4SSY/view?usp=drive_link" },
+                { title: "Grammar Test", link: "https://drive.google.com/file/d/1izVfscX_5NsvSEKruqL_V6Tskep_mFt-/view?usp=sharing" },
+                { title: "Subject Verb Agreement", link: "https://drive.google.com/file/d/11B2nCMqTkVdGdDoA5euQruKyqIpNjoCO/view?usp=sharing" },
+                { title: "Saint Xavier College", link: "https://drive.google.com/file/d/1KWIusQPq2Q6pgzshH93tZZwx3K58ibZw/view?usp=sharing" },
+                { title: "Saint Xavier CLZ 2", link: "https://www.facebook.com/share/p/19igTfRAwo/" },
+                { title: "KIST College", link: "https://www.facebook.com/share/p/1CErQbwi43/" },
+                { title: "GK MCQs", link: "https://drive.google.com/file/d/1Jq-lg3gqcuKfFEriodQmTM8pvpKpTSeX/view?usp=drive_link" },
+                { title: "Practice question", link: "https://drive.google.com/file/d/1FL6Yuz4byhfSM-1HP7_NKNTQzV3TNerf/view?usp=drive_link" },
+                { title: "KIST college model Question", link: "https://drive.google.com/file/d/1tDrJsd4LqmE2lETvTzMjBmDAE6zJ8qmO/view?usp=drive_link" },
+                { title: "Idiom and pharases", link: "https://drive.google.com/file/d/1O_34SqIb01li2MgYNPUeY6K_E_zTbqQO/view?usp=drive_link" },
+                { title: "All subject MCQs", link: "https://drive.google.com/file/d/1Aqz8fcIMbHqgoHJZScUchDWV2P3Vv7OA/view?usp=sharing" },
+            ] },
+        ];
+        const videos = [
+            { title: "All About Balen Exam", link: "https://youtu.be/hYPLDuz12Ek?si=U6LxvcQSp5yAe29S" },
+            { title: "How to Fill Balen Scholarship Form", link: "https://web.facebook.com/share/p/1GcDsTXfxi/" },
+            { title: "How to Check SEE Result", link: "https://youtu.be/K9NMlhPQRfA?si=HA7Qsd4AVgE4sntL" },
+            { title: "Balen Exam Tips", link: "https://youtu.be/10-M_VE6UCI?si=dnKysZ9hqg2tYS-7" },
+            { title: "Scholarship Prep Guide", link: "https://youtu.be/ALHOYD4lQfc?si=oLCfcl1S4L3ZFHC" },
+            { title: "Math Tricks for Balen", link: "https://youtu.be/KD42pgmha7s?si=01WjuSRcMXbxGxw_" },
+            { title: "Science Revision", link: "https://youtu.be/QhxnvJX-BgI?si=6Ez-IDV9my_Zb_d4" },
+            { title: "English Grammar Tips", link: "https://youtu.be/zBPKgdviVPY?si=9lOm7wsCQvB2dD7Q" },
+            { title: "How to Apply Retotaling?", link: "https://youtu.be/zyDMJKZzaWM?si=OK8u2N7k_qmI9bp2" },
+            { title: "Top Colleges of Nepal", link: "https://youtu.be/iMOEr0sbd8Y?si=O9BM8HULdqszYOZq" },
+        ];
+        const notices = [
+            { id: 1, title: "Weekly Quiz Competition Schedule", date: "July 28, 2024", content: "Our weekly live quiz competition will now be held every Monday, Wednesday, and Saturday at 8:00 AM. Be prepared to test your knowledge against the best!", type: "Announcement" },
+            { id: 2, title: "Premium Resources Updated", date: "July 27, 2024", content: "We've added 'Saint Xavier Past Year Questions' and 'Top 300 MCQs' to the premium resources section. Premium users can access them now.", type: "Update" },
+            { id: 3, title: "Form Submission Deadline Approaching", date: "July 25, 2024", content: "Please remember that the deadline for the official Balen Scholarship form submission is approaching. Ensure all your documents are uploaded correctly.", type: "Important" },
+            { id: 4, title: "New Video Guide: How to Fill the Form", date: "July 22, 2024", content: "A new step-by-step video guide on how to correctly fill the scholarship application form has been added to the Videos section.", type: "Update" }
+        ];
+        const faqs = [
+            { category: "General", items: [
+                { question: "What is the Balen Scholarship?", answer: "This is a sample answer. The Balen Scholarship is a prestigious award for talented students..." },
+                { question: "What is the purpose of this prep portal?", answer: "This portal is designed to provide you with all the necessary resources, quizzes, and support to excel in the Balen Scholarship exam." },
+                { question: "Is this the official portal from Kathmandu Metropolitan City?", answer: "No, this is an independent preparation portal created by Ganesh Dahal to help students. For the official portal, please visit entrance.kathmandu.gov.np." }
+            ]},
+            { category: "Eligibility & Application", items: [
+                { question: "Who can apply for the scholarship?", answer: (<div><p>You need at least 1.6 GPA in SEE, must study in a community school or have a 10% scholarship in a private school.</p><p className="mt-4">Confused? <a href="https://youtu.be/hYPLDuz12Ek?si=U6LxvcQSp5yAe29S" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Watch our YouTube guide!</a></p></div>) },
+                { question: "What documents do I need to apply?", answer: (<div><p>You need: SEE Admit Card & Mark sheet, Passport-sized photo, Citizenship or birth certificate, and School recommendation letters.</p><p className="mt-4">Watch: <a href="https://web.facebook.com/share/p/1GcDsTXfxi/" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">How to Fill Balen Scholarship Form</a></p></div>) },
+                { question: "Is there an application fee?", answer: "Please check the official KMC announcement for the most up-to-date information regarding application fees." }
+            ]},
+            { category: "Exam Details", items: [
+                { question: "What is the syllabus for the exam?", answer: "The syllabus typically covers subjects like Science, Mathematics, English, and General Knowledge based on the SEE curriculum." },
+                { question: "Is there negative marking for wrong answers?", answer: "As of the last update, there is no negative marking for incorrect answers, but it's always best to confirm with the official notice." },
+                { question: "Are calculators or other electronic devices allowed?", answer: "No, calculators and other electronic devices are strictly prohibited in the examination hall." }
+            ]},
+            { category: "Portal & Resources", items: [
+                { question: "How often are new quizzes added?", answer: "We follow a daily schedule for quizzes. Check the 'Daily Quizzes' section for the latest updates." },
+                { question: "What's included in the Premium Access?", answer: "Premium access unlocks all quizzes, exclusive study materials like advanced books, chapter-wise notes, and the ability to download competition results." },
+                { question: "I forgot my premium password. How can I recover it?", answer: "Your password has a specific formula based on your name. If you still have trouble, please contact us on WhatsApp for assistance." }
+            ]},
+            { category: "Technical Issues", items: [
+                { question: "A quiz link is not working. What should I do?", answer: "Please report the broken link to us via our WhatsApp or Facebook page, and we will fix it as soon as possible." },
+                { question: "The website is not displaying correctly on my device.", answer: "Our portal is designed to be mobile-friendly. Try clearing your browser cache or enabling 'Desktop Site' mode in your mobile browser for the best experience, especially for quizzes." }
+            ]}
         ];
 
-        // DOM elements
-        const questionText = document.getElementById('question-text');
-        const optionsContainer = document.getElementById('options-container');
-        const feedbackText = document.getElementById('feedback-text');
-        const scoreText = document.getElementById('score-text');
-        const nextButton = document.getElementById('next-button');
+        // ===== HELPER FUNCTIONS =====
+        const getJSONFromLocalStorage = (key, defaultValue) => {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (error) {
+                console.error(`Error parsing JSON from localStorage key "${key}":`, error);
+                return defaultValue;
+            }
+        };
 
-        let currentQuestionIndex = 0;
-        let score = 0;
+        // ===== CORE COMPONENTS =====
+        const DarkModeToggle = () => {
+            const [darkMode, setDarkMode] = useState(false);
+            useEffect(() => {
+                const isDark = localStorage.getItem('darkMode') === 'true';
+                setDarkMode(isDark);
+                document.documentElement.classList.toggle('dark', isDark);
+            }, []);
 
-        /**
-         * Renders the current question and its answer options to the page.
-         */
-        function displayQuestion() {
-            // Hide the next button and clear previous feedback
-            nextButton.style.display = 'none';
-            feedbackText.textContent = '';
+            const toggleDarkMode = () => {
+                const newDarkMode = !darkMode;
+                setDarkMode(newDarkMode);
+                localStorage.setItem('darkMode', newDarkMode);
+                document.documentElement.classList.toggle('dark', newDarkMode);
+            }
 
-            // Get the current question object
-            const currentQuestion = questions[currentQuestionIndex];
-            questionText.textContent = currentQuestion.question;
+            return (
+                <button
+                    onClick={toggleDarkMode}
+                    className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
+                    aria-label="Toggle dark mode"
+                >
+                    {darkMode ? <i className="fas fa-sun text-yellow-400"></i> : <i className="fas fa-moon text-gray-600"></i>}
+                </button>
+            );
+        };
 
-            // Clear previous options
-            optionsContainer.innerHTML = '';
+        const NotificationBanner = ({ notifications, onDismiss }) => {
+            const colors = {
+                info: 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/50 dark:border-blue-700 dark:text-blue-300',
+                success: 'bg-green-100 border-green-500 text-green-700 dark:bg-green-900/50 dark:border-green-700 dark:text-green-300',
+                alert: 'bg-red-100 border-red-500 text-red-700 dark:bg-red-900/50 dark:border-red-700 dark:text-red-300'
+            };
 
-            // Create a button for each option
-            currentQuestion.options.forEach(option => {
-                const button = document.createElement('button');
-                button.textContent = option;
-                button.classList.add(
-                    'bg-gray-200', 'text-gray-800', 'font-medium', 'py-3', 'px-6',
-                    'rounded-lg', 'shadow-sm', 'hover:bg-gray-300', 'transition-colors',
-                    'duration-200', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500',
-                    'focus:ring-offset-2'
-                );
-                // Add a click event listener to each button
-                button.addEventListener('click', () => checkAnswer(option, button));
-                optionsContainer.appendChild(button);
-            });
-        }
+            if (!notifications.length) return null;
 
-        /**
-         * Checks the user's selected answer against the correct answer.
-         * @param {string} selectedAnswer The answer selected by the user.
-         * @param {HTMLElement} selectedButton The button element that was clicked.
-         */
-        function checkAnswer(selectedAnswer, selectedButton) {
-            const currentQuestion = questions[currentQuestionIndex];
-            
-            // Disable all buttons to prevent multiple clicks
-            Array.from(optionsContainer.children).forEach(button => {
-                button.disabled = true;
-            });
+            return (
+                <div className="space-y-2 p-2">
+                    {notifications.map(n => (
+                        <div key={n.id} className={`border-l-4 p-4 rounded-md shadow-sm flex items-center justify-between animate-fadeIn ${colors[n.type]}`} role="alert">
+                            <p className="text-sm md:text-base" dangerouslySetInnerHTML={{ __html: n.message }}></p>
+                            {n.isDismissible && (
+                                <button onClick={() => onDismiss(n.id)} className="ml-4 text-xl font-bold opacity-70 hover:opacity-100">&times;</button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
 
-            // Check if the selected answer is correct
-            if (selectedAnswer === currentQuestion.correctAnswer) {
-                score++;
-                feedbackText.textContent = "Correct!";
-                feedbackText.classList.remove('text-red-500');
-                feedbackText.classList.add('text-green-600');
-                selectedButton.classList.add('bg-green-500', 'text-white', 'hover:bg-green-600');
-            } else {
-                feedbackText.textContent = "Wrong!";
-                feedbackText.classList.remove('text-green-600');
-                feedbackText.classList.add('text-red-500');
-                selectedButton.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600');
+        const Header = ({ setActiveSection, activeSection, isPremium }) => {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const navItems = [
+                { key: 'home', label: 'Home' },
+                { key: 'quizzes', label: 'Daily Quizzes' },
+                { key: 'competition', label: 'Quiz Competition' },
+                { key: 'resources', label: 'Resources' },
+                { key: 'videos', label: 'Videos' },
+                { key: 'notices', label: 'Notices' },
+                { key: 'faqs', label: 'FAQs' }
+            ];
 
-                // Find and highlight the correct answer
-                Array.from(optionsContainer.children).forEach(button => {
-                    if (button.textContent === currentQuestion.correctAnswer) {
-                        button.classList.add('bg-green-500', 'text-white', 'border-2', 'border-green-700');
+            return (
+                <header className="header-gradient text-white p-4 shadow-lg sticky top-0 z-50">
+                    <div className="container mx-auto flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                            <img src="https://raw.githubusercontent.com/ganeshdahal-HUE/practicece/6684a6cfa40eda8be7402689857a23575f0b723a/494645815_122099085086862980_1698079942897814974_n.jpg" alt="Site Logo" className="h-12 w-12 rounded-full shadow-md object-cover border-2 border-white/50" />
+                            <div>
+                                <div className="flex items-center">
+                                    <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">Balen Scholarship</h1>
+                                    {isPremium && (
+                                        <span className="ml-2 flex items-center bg-gradient-to-r from-amber-400 to-yellow-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg transform transition-transform hover:scale-105 animate-pulse">
+                                            <i className="fas fa-star mr-1"></i>PREMIUM
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-xs text-white/80 -mt-1">Prep Portal</p>
+                            </div>
+                        </div>
+                        <nav className="hidden lg:flex items-center gap-2">
+                            {navItems.map(btn => (
+                                <button
+                                    key={btn.key}
+                                    onClick={() => setActiveSection(btn.key)}
+                                    className={`nav-button bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-3 rounded-lg shadow-sm transition-all duration-300 ${activeSection === btn.key ? 'active' : ''}`}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                            <DarkModeToggle />
+                        </nav>
+                        <div className="lg:hidden flex items-center gap-2">
+                            <DarkModeToggle />
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md text-white bg-white/10 hover:bg-white/20">
+                                <i className="fas fa-bars text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {isMenuOpen && (
+                        <nav className="lg:hidden mt-4 animate-fadeIn">
+                            <div className="flex flex-col items-center gap-2">
+                                {navItems.map(btn => (
+                                    <button
+                                        key={btn.key}
+                                        onClick={() => { setActiveSection(btn.key); setIsMenuOpen(false); }}
+                                        className={`w-full text-center nav-button bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-lg shadow-sm transition-all duration-300 ${activeSection === btn.key ? 'active' : ''}`}
+                                    >
+                                        {btn.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </nav>
+                    )}
+                </header>
+            );
+        };
+
+        const Footer = () => (
+            <footer className="footer-gradient text-white p-4 text-center shadow-inner mt-8">
+                <div className="container mx-auto">
+                    <p className="font-semibold">&copy; 2024 Balen Scholarship Prep. Designed by Ganesh Dahal.</p>
+                    <div className="flex justify-center space-x-5 mt-3">
+                        <a href="https://www.facebook.com/profile.php?id=61575889414561" target="_blank" rel="noopener noreferrer" className="text-white hover:text-blue-300 transition-colors duration-300"><i className="fab fa-facebook-f text-xl"></i></a>
+                        <a href="https://www.youtube.com/@balenscholarship" target="_blank" rel="noopener noreferrer" className="text-white hover:text-red-400 transition-colors duration-300"><i className="fab fa-youtube text-xl"></i></a>
+                        <a href="https://wa.me/9826594548" target="_blank" rel="noopener noreferrer" className="text-white hover:text-green-400 transition-colors duration-300"><i className="fab fa-whatsapp text-xl"></i></a>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        // ===== PAGE SECTIONS =====
+        const HomeSection = ({ setActiveSection, userName }) => {
+            const stats = [
+                { value: "20+", label: "Daily Quizzes" },
+                { value: "50+", label: "Study Materials" },
+                { value: "10+", label: "Video Guides" },
+                { value: "100s", label: "Happy Students" }
+            ];
+            const features = [
+                { icon: "fas fa-pencil-ruler", title: "Targeted Quizzes", description: "Practice with quizzes designed to mirror the actual exam format and difficulty." },
+                { icon: "fas fa-book-reader", title: "Curated Resources", description: "Access a comprehensive library of notes, books, and past papers all in one place." },
+                { icon: "fas fa-trophy", title: "Weekly Competitions", description: "Sharpen your competitive edge and win prizes in our live weekend quiz battles." }
+            ];
+            const testimonials = [
+                { quote: "This portal was a game-changer for my preparation. The daily quizzes kept me sharp and the resources were incredibly helpful!", name: "Anjali Sharma", detail: "Scholarship Winner 2023", avatar: "https://i.pravatar.cc/150?u=anjali" },
+                { quote: "I can't recommend this enough. The structured content and the quiz competitions gave me the confidence I needed to ace the exam.", name: "Bikram Thapa", detail: "Top 10 Ranker", avatar: "https://i.pravatar.cc/150?u=bikram" },
+                { quote: "The best place for Balen Scholarship prep. Everything is so well-organized. Thank you, Ganesh Dai, for creating this platform!", name: "Sunita Rai", detail: "Student", avatar: "https://i.pravatar.cc/150?u=sunita" }
+            ];
+            return (
+                <section id="home">
+                    <div className="relative bg-gradient-to-br from-gray-900 to-slate-800 text-white overflow-hidden">
+                        <div className="container mx-auto px-4 py-20 md:py-28 text-center md:text-left relative z-10">
+                            <div className="grid md:grid-cols-2 gap-8 items-center">
+                                <div className="animate-fadeIn">
+                                    {userName && <p className="mb-4 text-xl font-semibold text-indigo-400">Welcome back, {userName}!</p>}
+                                    <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">Unlock Your Future with the <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Balen Scholarship</span></h1>
+                                    <p className="mt-6 text-lg text-gray-300 max-w-xl">Your all-in-one preparation portal for success. Master every subject with our expert resources, daily practice, and competitive quizzes.</p>
+                                    <div className="mt-10 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+                                        <button onClick={() => setActiveSection('quizzes')} className="gradient-button text-white font-bold py-4 px-8 rounded-full shadow-xl text-lg w-full sm:w-auto uppercase tracking-wider">Start Quiz</button>
+                                        <button onClick={() => setActiveSection('resources')} className="bg-white/10 border border-white/20 text-white font-bold py-4 px-8 rounded-full text-lg w-full sm:w-auto uppercase tracking-wider hover:bg-white/20 transition-colors">View Resources</button>
+                                    </div>
+                                </div>
+                                <div className="hidden md:block animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+                                    <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Star-Struck.png" alt="Success Illustration" className="w-full max-w-md mx-auto" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-gray-100 dark:bg-gray-800 py-12">
+                        <div className="container mx-auto px-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                                {stats.map((stat, i) => (
+                                    <div key={i} className="animate-fadeIn" style={{ animationDelay: `${i * 0.1}s` }}>
+                                        <p className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">{stat.value}</p>
+                                        <p className="text-gray-600 dark:text-gray-400 font-semibold mt-1">{stat.label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="py-16 bg-white dark:bg-gray-900">
+                        <div className="container mx-auto px-4">
+                            <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-4">Why Choose Our Portal?</h2>
+                            <p className="text-center text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12">We provide a structured and comprehensive approach to ensure you are fully prepared for the exam day.</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {features.map((feature, i) => (
+                                    <div key={i} className="bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl shadow-lg text-center card-hover animate-fadeIn" style={{ animationDelay: `${i * 0.15}s` }}>
+                                        <div className="bg-indigo-100 dark:bg-indigo-900/50 p-5 rounded-full inline-block mb-4">
+                                            <i className={`${feature.icon} text-4xl text-indigo-500`}></i>
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{feature.title}</h3>
+                                        <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="py-16 bg-gray-100 dark:bg-gray-800">
+                        <div className="container mx-auto px-4">
+                            <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-12">What Our Students Say</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {testimonials.map((t, i) => (
+                                    <div key={i} className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-lg animate-fadeIn card-hover" style={{ animationDelay: `${i * 0.15}s` }}>
+                                        <i className="fas fa-quote-left text-3xl text-indigo-200 dark:text-indigo-800 mb-4"></i>
+                                        <p className="text-gray-600 dark:text-gray-300 mb-6 italic">"{t.quote}"</p>
+                                        <div className="flex items-center">
+                                            <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-full mr-4 object-cover" />
+                                            <div>
+                                                <p className="font-bold text-gray-900 dark:text-white">{t.name}</p>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">{t.detail}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-900 py-20">
+                        <div className="container mx-auto px-4 text-center">
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white">Ready to Start Your Success Journey?</h2>
+                            <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Join hundreds of other students and get access to the best preparation materials today.</p>
+                            <div className="mt-8">
+                                <button onClick={() => setActiveSection('quizzes')} className="gradient-button text-white font-bold py-4 px-10 rounded-full shadow-xl text-lg uppercase tracking-wider">Take a Free Quiz Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const QuizzesSection = ({ isPremium, setIsPremium, forceUpdate }) => {
+            const [showDesktopSiteMessage, setShowDesktopSiteMessage] = useState(false);
+            const [showPasswordModal, setShowPasswordModal] = useState(false);
+            const [showCelebration, setShowCelebration] = useState(false);
+            const [passwordInput, setPasswordInput] = useState('');
+            const [passwordError, setPasswordError] = useState('');
+            const [userName, setUserName] = useState(localStorage.getItem('balenUserName') || '');
+
+            const completedQuizzes = useMemo(() => getJSONFromLocalStorage('balenCompletedQuizzes', {}), []);
+            const completedCount = Object.keys(completedQuizzes).length;
+
+            useEffect(() => {
+                if (completedCount === dailyQuizzes.length && !showCelebration) {
+                    setShowCelebration(true);
+                    setTimeout(() => setShowCelebration(false), 3000);
+                }
+            }, [completedCount]);
+
+            const preparedQuizzes = useMemo(() => {
+                const startDate = new Date(localStorage.getItem('balenAppStartDate') || new Date());
+                const now = new Date();
+                const msInDay = 24 * 60 * 60 * 1000;
+                const daysSinceStart = Math.floor((now - startDate) / msInDay);
+                const maxUnlockable = Math.min(daysSinceStart + 1, completedCount + 1);
+                const totalQuizzes = dailyQuizzes.length;
+                const freeQuizCount = Math.floor(totalQuizzes * 0.40);
+
+                return dailyQuizzes.map(quiz => {
+                    let status, statusText, buttonText;
+                    if (completedQuizzes[quiz.day]) {
+                        status = 'Completed';
+                        statusText = 'You have completed this quiz.';
+                        buttonText = 'Play Again';
+                    } else if (quiz.day > freeQuizCount && !isPremium) {
+                        status = 'Requires Premium';
+                        statusText = 'Unlock premium to access this quiz.';
+                        buttonText = 'Premium';
+                    } else if (quiz.day <= maxUnlockable) {
+                        status = 'Unlocked';
+                        statusText = 'This quiz is available for you to play.';
+                        buttonText = 'Start Quiz';
+                    } else {
+                        status = 'Locked';
+                        statusText = `Unlocks after you complete prior quizzes.`;
+                        buttonText = 'Locked';
                     }
+                    return { ...quiz, status, statusText, buttonText };
                 });
-            }
+            }, [completedQuizzes, isPremium]);
 
-            // Update score display
-            scoreText.textContent = `Score: ${score}`;
+            const progressPercentage = (completedCount / dailyQuizzes.length) * 100;
+
+            const handleQuizClick = (e, day, link, status) => {
+                if (status !== 'Unlocked' && status !== 'Completed') {
+                    e.preventDefault();
+                    return;
+                }
+                if (status === 'Unlocked') {
+                    const done = { ...completedQuizzes, [day]: true };
+                    localStorage.setItem('balenCompletedQuizzes', JSON.stringify(done));
+                }
+                setShowDesktopSiteMessage(true);
+                setTimeout(() => {
+                    setShowDesktopSiteMessage(false);
+                    window.open(link, '_blank');
+                    forceUpdate(k => k + 1);
+                }, 2000);
+            };
+
+            const getPrecedingAndSuccessiveChars = (char) => {
+                if (!char || typeof char !== 'string' || char.length !== 1) return { preceding: '', successive: '' };
+                const lowerChar = char.toLowerCase();
+                const code = lowerChar.charCodeAt(0);
+                let preceding = '', successive = '';
+                if (code >= 97 && code <= 122) { // 'a' to 'z'
+                    preceding = String.fromCharCode(code === 97 ? 122 : code - 1); // wrap 'a' to 'z'
+                    successive = String.fromCharCode(code === 122 ? 97 : code + 1); // wrap 'z' to 'a'
+                }
+                return { preceding, successive };
+            };
+
+            const generatePassword = (name) => {
+                if (!name || name.length < 3) return null;
+                const third = name.charAt(2).toLowerCase();
+                const { preceding, successive } = getPrecedingAndSuccessiveChars(third);
+                return `${name}@1234${preceding}${successive}`;
+            };
+
+            const handlePasswordSubmit = (e) => {
+                e.preventDefault();
+                const expected = generatePassword(userName);
+                if (passwordInput === expected) {
+                    localStorage.setItem('balenPremiumUnlocked', 'true');
+                    setIsPremium(true);
+                    setShowPasswordModal(false);
+                    setPasswordError('');
+                    forceUpdate(k => k + 1);
+                } else {
+                    setPasswordError('Incorrect password. Please try again.');
+                }
+            };
+
+            return (
+                <section id="quizzes" className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-800">
+                    <div className="container mx-auto">
+                        <h2 className="text-4xl font-extrabold text-center section-heading dark:text-red-400 mb-10 animate-fadeIn">Daily Quizzes</h2>
+                        <div className="mb-10 p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md animate-superPop">
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Your Quiz Progress</h3>
+                            <div className="quiz-progress-bar">
+                                <div className="quiz-progress-fill" style={{ width: `${progressPercentage}%` }}></div>
+                            </div>
+                            <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">{completedCount} out of {dailyQuizzes.length} quizzes completed ({progressPercentage.toFixed(1)}%)</p>
+                        </div>
+
+                        {!isPremium && preparedQuizzes.some(q => q.status === 'Requires Premium') && (
+                            <div className="text-center mb-8 bg-amber-100 dark:bg-amber-900/50 p-6 rounded-2xl shadow">
+                                <h3 className="text-2xl font-bold text-amber-700 dark:text-amber-300">Go Premium!</h3>
+                                <p className="text-amber-600 dark:text-amber-400 my-2">Unlock all remaining quizzes and features.</p>
+                                <button onClick={() => setShowPasswordModal(true)} className="gradient-button text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg uppercase tracking-wide animate-pulse">Upgrade to Premium</button>
+                            </div>
+                        )}
+
+                        {showDesktopSiteMessage && <div className="overlay"><div className="message-box">Enable "Desktop Site" in your browser for the best quiz experience!</div></div>}
+
+                        {showCelebration && (
+                           <div className="overlay">
+                                <div className="message-box text-gray-800 flex flex-col items-center">
+                                    <span className="text-7xl mb-4 animate-tada">🎉</span>
+                                    <h3 className="text-3xl font-bold text-green-600">Congratulations!</h3>
+                                    <p className="text-lg mt-2">You've completed all the daily quizzes! Amazing dedication!</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {showPasswordModal && (
+                            <div className="overlay">
+                                <div className="modal-box text-gray-800">
+                                    <h3 className="text-2xl font-bold mb-2">Unlock Premium Content</h3>
+                                    <p className="text-sm mb-4">Your password is: [Your Name] + "@1234" + [preceding & successive letters of the 3rd character of your name].</p>
+                                    <p className="text-sm mb-4">
+                                        <a href="https://wa.me/9826594548?text=I%20need%20help%20with%20my%20premium%20password." className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">For password Contact - 9826594548</a>
+                                    </p>
+                                    <form onSubmit={handlePasswordSubmit} className="text-left">
+                                        <input type="password" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="Enter password" className="border p-2 rounded w-full mb-3" required />
+                                        {passwordError && <p className="text-red-500 text-sm mb-2">{passwordError}</p>}
+                                        <div className="flex gap-2 justify-center">
+                                            <button type="submit" className="gradient-button text-white font-bold py-2 px-4 rounded-full shadow-md">Unlock</button>
+                                            <button type="button" onClick={() => setShowPasswordModal(false)} className="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-full shadow-md">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {preparedQuizzes.map((quiz) => {
+                                const statusColors = { 'Completed': 'border-green-500', 'Unlocked': 'border-blue-500', 'Locked': 'border-gray-400', 'Requires Premium': 'border-red-500' };
+                                const buttonIcons = { 'Start Quiz': 'fa-arrow-right', 'Play Again': 'fa-redo', 'Premium': 'fa-star', 'Locked': 'fa-lock' };
+                                const isDisabled = quiz.status === 'Locked' || quiz.status === 'Requires Premium';
+                                return (
+                                    <div key={quiz.day} className={`bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg card-hover animate-fadeIn flex flex-col border-t-4 ${statusColors[quiz.status]}`}>
+                                        <div className="flex-grow">
+                                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Day {quiz.day}: {quiz.title}</h3>
+                                            <p className="text-gray-600 dark:text-gray-400 mb-3">Subject: {quiz.subject}</p>
+                                            <p className={`font-semibold mb-1 text-sm ${{ 'Completed': 'text-green-600 dark:text-green-400', 'Unlocked': 'text-blue-600 dark:text-blue-400', 'Locked': 'text-gray-500 dark:text-gray-400', 'Requires Premium': 'text-red-600 dark:text-red-400' }[quiz.status]}`}>
+                                                Status: {quiz.status}
+                                            </p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{quiz.statusText}</p>
+                                        </div>
+                                        <button
+                                            onClick={quiz.status === 'Requires Premium' ? () => setShowPasswordModal(true) : (e) => handleQuizClick(e, quiz.day, quiz.link, quiz.status)}
+                                            disabled={quiz.status === 'Locked'}
+                                            className={`w-full mt-auto font-bold py-2 px-4 rounded-full shadow-md text-sm transition-transform duration-200 ${!isDisabled ? 'gradient-button text-white' : (quiz.status === 'Requires Premium' ? 'bg-amber-500 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed')}`}
+                                        >
+                                            <span>{quiz.buttonText} <i className={`fas ${buttonIcons[quiz.buttonText]} ml-2`}></i></span>
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // ===== NEW COMPONENT FOR QUIZ COMPETITION TIMING =====
+        const LiveQuizStatus = () => {
+            const QUIZ_SCHEDULE = {
+                days: [1, 3, 6], // 0=Sun, 1=Mon, 3=Wed, 6=Sat
+                startHour: 8,    // 8 AM
+                durationHours: 12,
+                link: "https://quiz.com/617025/"
+            };
+
+            const [quizState, setQuizState] = useState({
+                isActive: false,
+                isUpcoming: false,
+                timeUntil: { days: 0, hours: 0, minutes: 0, seconds: 0 },
+                message: "Calculating..."
+            });
+
+            useEffect(() => {
+                const calculateTime = () => {
+                    const now = new Date();
+                    let nextEvent = null;
+                    let eventType = '';
+
+                    // Find the next upcoming quiz start or current quiz end
+                    for (let i = 0; i < 8; i++) {
+                        const checkDate = new Date();
+                        checkDate.setDate(now.getDate() + i);
+                        const checkDay = checkDate.getDay();
+
+                        if (QUIZ_SCHEDULE.days.includes(checkDay)) {
+                            const startTime = new Date(checkDate);
+                            startTime.setHours(QUIZ_SCHEDULE.startHour, 0, 0, 0);
+                            const endTime = new Date(startTime);
+                            endTime.setHours(startTime.getHours() + QUIZ_SCHEDULE.durationHours);
+
+                            if (now >= startTime && now < endTime) {
+                                nextEvent = endTime;
+                                eventType = 'active';
+                                break;
+                            }
+                            if (startTime > now) {
+                                nextEvent = startTime;
+                                eventType = 'upcoming';
+                                break;
+                            }
+                        }
+                    }
+                    
+                    const diff = nextEvent - now;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                    setQuizState({
+                        isActive: eventType === 'active',
+                        isUpcoming: eventType === 'upcoming',
+                        timeUntil: { days, hours, minutes, seconds },
+                        message: eventType === 'active' ? "Quiz ends in:" : "Next quiz starts in:"
+                    });
+                };
+                
+                calculateTime();
+                const intervalId = setInterval(calculateTime, 1000);
+                return () => clearInterval(intervalId);
+            }, []);
+
+            const TimeBlock = ({ value, label }) => (
+                <div className="bg-white/10 p-4 rounded-lg shadow-inner">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tighter">{String(value).padStart(2, '0')}</div>
+                    <div className="text-xs sm:text-sm uppercase text-white/70 tracking-widest mt-1">{label}</div>
+                </div>
+            );
             
-            // Show the next button
-            nextButton.style.display = 'block';
-        }
+            return (
+                <div className="text-center bg-gradient-to-br from-indigo-700 to-purple-800 dark:from-indigo-900 dark:to-purple-900 text-white p-6 sm:p-8 rounded-2xl shadow-lg">
+                    {quizState.isActive ? (
+                        <div className="animate-fadeIn">
+                            <h2 className="text-2xl md:text-3xl font-bold mb-3 text-green-300 animate-pulse">Quiz is LIVE!</h2>
+                            <p className="text-lg mb-6">{quizState.message}</p>
+                            <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-sm mx-auto mb-8">
+                                <TimeBlock value={quizState.timeUntil.hours} label="Hours" />
+                                <TimeBlock value={quizState.timeUntil.minutes} label="Minutes" />
+                                <TimeBlock value={quizState.timeUntil.seconds} label="Seconds" />
+                            </div>
+                            <a href={QUIZ_SCHEDULE.link} target="_blank" rel="noopener noreferrer" className="gradient-button inline-block text-white font-bold py-4 px-12 rounded-full shadow-xl text-lg uppercase tracking-wider transform transition-transform hover:scale-105">
+                                Start Quiz Now <i className="fas fa-rocket ml-2"></i>
+                            </a>
+                        </div>
+                    ) : quizState.isUpcoming ? (
+                        <div className="animate-fadeIn">
+                            <h2 className="text-2xl md:text-3xl font-bold mb-3">Quiz Challenge</h2>
+                            <p className="text-lg mb-6">{quizState.message}</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 max-w-lg mx-auto mb-6">
+                                <TimeBlock value={quizState.timeUntil.days} label="Days" />
+                                <TimeBlock value={quizState.timeUntil.hours} label="Hours" />
+                                <TimeBlock value={quizState.timeUntil.minutes} label="Minutes" />
+                                <TimeBlock value={quizState.timeUntil.seconds} label="Seconds" />
+                            </div>
+                            <p className="text-sm text-white/80 mt-6">Quizzes are available on Monday, Wednesday, and Saturday from 8 AM for 12 hours.</p>
+                        </div>
+                    ) : (
+                        <div className="animate-fadeIn">
+                            <h2 className="text-2xl md:text-3xl font-bold mb-3">Quiz Challenge</h2>
+                            <div className="flex justify-center items-center my-8">
+                                <i className="fas fa-spinner fa-spin text-4xl"></i>
+                            </div>
+                            <p className="text-lg">{quizState.message}</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
 
-        /**
-         * Moves to the next question or ends the quiz.
-         */
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                displayQuestion();
-            } else {
-                endQuiz();
-            }
-        }
 
-        /**
-         * Displays the final score and an option to restart the quiz.
-         */
-        function endQuiz() {
-            questionText.textContent = "Quiz Finished!";
-            optionsContainer.innerHTML = '';
-            feedbackText.textContent = `You scored ${score} out of ${questions.length}!`;
-            nextButton.textContent = "Restart Quiz";
-            nextButton.style.display = 'block';
-            nextButton.onclick = resetQuiz;
-        }
+        const QuizCompetitionSection = ({ isPremium }) => {
+            const [activeTab, setActiveTab] = useState('quiz');
+            const [user, setUser] = useState(null);
+            const [showModal, setShowModal] = useState(false);
+            const [showCongrats, setShowCongrats] = useState(false);
+            const [error, setError] = useState(null);
+            const [isLockedOut, setIsLockedOut] = useState(false);
+            const maxTries = 20;
+            const resultsDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const resultsData = {
+                podium: [
+                    { rank: 1, name: "John Doe", symbol: "S001", score: "95%", img: "https://raw.githubusercontent.com/ganeshdahal-HUE/practicece/1fa477b17f70aa4680dc5681c4de27721b636685/382167751_847430806851243_2276443732250154512_n.jpg", medal: '🏆', color: 'amber' },
+                    { rank: 2, name: "Ganesh Dahal", symbol: "S002", score: "90%", img: "https://raw.githubusercontent.com/ganeshdahal-HUE/practicece/6684a6cfa40eda8be7402689857a23575f0b723a/494645815_122099085086862980_1698079942897814974_n.jpg", medal: '🥈', color: 'slate' },
+                    { rank: 3, name: "Alex Johnson", symbol: "S003", score: "85%", img: "https://i.pravatar.cc/150?u=alex", medal: '🥉', color: 'orange' }
+                ],
+                table: [
+                    { rank: 4, name: "Player 4", symbol: "S004", score: "80%" },
+                    { rank: 5, name: "Player 5", symbol: "S005", score: "78%" },
+                    { rank: 6, name: "Player 6", symbol: "S006", score: "75%" },
+                    { rank: 7, name: "Player 7", symbol: "S007", score: "72%" },
+                    { rank: 8, name: "Player 8", symbol: "S008", score: "70%" },
+                    { rank: 9, name: "Player 9", symbol: "S009", score: "68%" },
+                    { rank: 10, name: "Hello", symbol: "021052854", score: "65%" }
+                ]
+            };
+            const leaderboardData = [
+                { rank: 1, name: "Hello", symbol: "021052854", score: 205, medal: '🏆' },
+                { rank: 2, name: "DON ganzelo", symbol: "04803820", score: 120, medal: '🥈' },
+                { rank: 3, name: "Ganesh", symbol: "S002", score: 115, medal: '🥉' },
+                { rank: 4, name: "Player 4", symbol: "S004", score: 110 },
+                { rank: 5, name: "Player 5", symbol: "S005", score: 105 },
+                { rank: 6, name: "Player 6", symbol: "S006", score: 100 },
+                { rank: 7, name: "Player 7", symbol: "S007", score: 95 },
+                { rank: 8, name: "Player 8", symbol: "S008", score: 90 },
+                { rank: 9, name: "Player 9", symbol: "S009", score: 85 },
+                { rank: 10, name: "Player 10", symbol: "S010", score: 80 }
+            ];
+
+            useEffect(() => {
+                const storedUser = getJSONFromLocalStorage('quizHubUser', null);
+                const tries = getJSONFromLocalStorage('symbolTryCount', 0);
+                if (tries >= maxTries) {
+                    setIsLockedOut(true);
+                }
+                if (storedUser) {
+                    setUser(storedUser);
+                    const isWinner = [...resultsData.podium, ...resultsData.table].some(p => p.symbol === storedUser.symbol);
+                    if (isWinner && !sessionStorage.getItem('congratsShown')) {
+                        setShowCongrats(true);
+                        sessionStorage.setItem('congratsShown', 'true');
+                        setTimeout(() => setShowCongrats(false), 4000);
+                    }
+                } else {
+                    if (!isLockedOut) setShowModal(true);
+                }
+            }, []);
+
+            const handleJoin = (e) => {
+                e.preventDefault();
+                setError(null);
+                let tries = getJSONFromLocalStorage('symbolTryCount', 0);
+                if (tries >= maxTries) {
+                    setIsLockedOut(true);
+                    return;
+                }
+                const name = e.target.elements.userName.value;
+                const symbol = e.target.elements.symbolNumber.value;
+                if (validSymbolNumbers.includes(symbol)) {
+                    const newUser = { name, symbol };
+                    localStorage.setItem('quizHubUser', JSON.stringify(newUser));
+                    localStorage.setItem('balenUserName', name); // Also set the general user name
+                    localStorage.removeItem('symbolTryCount');
+                    setUser(newUser);
+                    setShowModal(false);
+                } else {
+                    tries++;
+                    localStorage.setItem('symbolTryCount', JSON.stringify(tries));
+                    if (tries >= maxTries) {
+                        setIsLockedOut(true);
+                        setError({ message: 'Too many incorrect attempts. Please contact support.', showContact: true });
+                    } else {
+                        setError({ message: `Invalid Symbol Number. You have ${maxTries - tries} attempts remaining.`, showContact: false });
+                    }
+                }
+            };
+
+            const handleDownload = (elementId, filename) => {
+                if (!isPremium) {
+                    alert("This is a premium feature. Please upgrade to download results.");
+                    return;
+                }
+                const element = document.getElementById(elementId);
+                if (element) {
+                    html2canvas(element, { backgroundColor: '#111827', useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
+                }
+            };
+            
+            const renderUserHighlight = (text) => `${text} <span class="text-yellow-400 font-bold">(You)</span>`;
+            
+            const renderTableRows = (data, isLeaderboard = false) => {
+                return data.map(r => (
+                    <tr key={r.rank} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td className="p-3 font-bold">{r.rank} {r.medal || ''}</td>
+                        <td className="p-3 font-medium" dangerouslySetInnerHTML={{__html: user?.symbol === r.symbol ? renderUserHighlight(r.name) : r.name}}></td>
+                        <td className="p-3">{r.symbol}</td>
+                        <td className="p-3">{r.score}{isLeaderboard ? '' : ''}</td>
+                    </tr>
+                ));
+            };
+
+            const DownloadableResults = ({ id }) => (
+                <div id={id} className="absolute -left-full -top-full p-8 bg-gray-900 text-white w-[800px]">
+                    <h2 className="text-4xl font-bold text-center text-amber-400">Latest Quiz Results</h2>
+                    <p className="text-center text-lg text-gray-300 mb-6">{resultsDate}</p>
+                    <div className="flex justify-center items-end gap-4 text-center">
+                        {resultsData.podium.map(p => (
+                            <div key={p.rank} className={`p-4 rounded-xl ${p.rank === 1 ? 'order-2' : p.rank === 2 ? 'order-1' : 'order-3'}`}>
+                                <span className="text-5xl">{p.medal}</span>
+                                <img src={p.img} alt={p.name} className={`w-32 h-32 rounded-full mx-auto my-2 object-cover border-4 border-${p.color}-400 shadow-lg`} />
+                                <p className="font-bold text-xl">{p.name}</p>
+                                <p className="text-gray-400 text-lg">{p.score}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <table className="w-full text-left mt-8 text-lg">
+                        <thead className="bg-gray-800"><tr><th className="p-3">Rank</th><th className="p-3">Name</th><th className="p-3">Score</th></tr></thead>
+                        <tbody>{resultsData.table.map(r => <tr key={r.rank}><td className="p-2">{r.rank}</td><td className="p-2">{r.name}</td><td className="p-2">{r.score}</td></tr>)}</tbody>
+                    </table>
+                    <p className="text-center text-sm mt-6 text-gray-500">Balen Scholarship Prep Portal</p>
+                </div>
+            );
+
+            return (
+                <section id="competition" className="py-8 px-2 md:px-4 bg-gray-50 dark:bg-gray-800">
+                    <div className="container mx-auto">
+                        <header className="text-center p-8 md:p-12 text-white rounded-2xl shadow-xl relative overflow-hidden" style={{background: 'linear-gradient(135deg, #6b48ff, #00ddeb)'}}>
+                            <div className="absolute inset-0 bg-black opacity-20"></div>
+                            <div className="relative z-10">
+                                {user && <p className="absolute top-4 left-4 text-sm bg-black/30 px-3 py-1 rounded-full">Welcome, <span className="font-bold text-yellow-300">{user.name}</span> ({user.symbol})</p>}
+                                <h1 className="text-3xl md:text-5xl font-extrabold mb-2 animate-bounceIn">Quiz Competition Hub</h1>
+                                <p className="text-lg md:text-xl opacity-90">Test your skills and climb the leaderboard.</p>
+                            </div>
+                        </header>
+
+                        {user && (
+                            <div>
+                                <div className="flex flex-wrap justify-center my-6 bg-white dark:bg-gray-900 rounded-xl shadow-md p-2">
+                                    {['quiz', 'results', 'leaderboard'].map(tab => (
+                                        <button key={tab} onClick={() => setActiveTab(tab)} className={`capitalize px-4 py-2 md:px-8 md:py-3 font-semibold rounded-lg transition-all duration-300 ${activeTab === tab ? 'bg-indigo-600 text-white shadow' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>{tab}</button>
+                                    ))}
+                                </div>
+                                <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-4 md:p-8 animate-fadeIn">
+                                    {activeTab === 'quiz' && (
+                                        <LiveQuizStatus />
+                                    )}
+                                    {activeTab === 'results' && (
+                                        <div>
+                                            <div className="flex justify-between items-center mb-6">
+                                                <div>
+                                                    <h2 className="text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400">Latest Quiz Results</h2>
+                                                    <p className="text-gray-500 dark:text-gray-400">Results for: {resultsDate}</p>
+                                                </div>
+                                                <button onClick={() => handleDownload('results-to-download', `results-${resultsDate}.png`)} disabled={!isPremium} className="gradient-button text-white font-bold py-2 px-4 rounded-full shadow-md text-sm disabled:opacity-50">
+                                                    <i className={`fas ${isPremium ? 'fa-download' : 'fa-lock'} mr-2`}></i> Download
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-col md:flex-row justify-center items-end gap-4 md:gap-8 mb-8 text-center">
+                                                {resultsData.podium.sort((a,b) => a.rank - b.rank).map(p => (
+                                                    <div key={p.rank} className={`p-4 rounded-xl card-hover ${p.rank === 1 ? 'order-first md:order-2' : p.rank === 2 ? 'order-2 md:order-1' : 'order-3'}`}>
+                                                        <span className="text-4xl">{p.medal}</span>
+                                                        <img src={p.img} alt={p.name} className={`w-24 h-24 md:w-32 md:h-32 rounded-full mx-auto my-2 object-cover border-4 border-${p.color}-400 shadow-lg`} />
+                                                        <p className="font-bold text-lg" dangerouslySetInnerHTML={{__html: user?.symbol === p.symbol ? renderUserHighlight(p.name) : p.name}}></p>
+                                                        <p className="text-gray-600 dark:text-gray-400">{p.score}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left">
+                                                    <thead className="bg-gray-100 dark:bg-gray-800"><tr><th className="p-3">Rank</th><th className="p-3">Name</th><th className="p-3">Symbol</th><th className="p-3">Score</th></tr></thead>
+                                                    <tbody>{renderTableRows(resultsData.table)}</tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {activeTab === 'leaderboard' && (
+                                        <div>
+                                            <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 text-indigo-600 dark:text-indigo-400">Overall Leaderboard</h2>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left">
+                                                    <thead className="bg-gray-100 dark:bg-gray-800"><tr><th className="p-3">Rank</th><th className="p-3">Name</th><th className="p-3">Symbol</th><th className="p-3">Total Score</th></tr></thead>
+                                                    <tbody>{renderTableRows(leaderboardData, true)}</tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        {(showModal || isLockedOut) && !user && (
+                            <div className="overlay">
+                                <div className="modal-box text-gray-800 relative">
+                                    {!isLockedOut && <button onClick={() => setShowModal(false)} className="absolute top-2 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>}
+                                    {isLockedOut ? (
+                                        <div>
+                                            <h3 className="text-2xl font-bold text-red-600 mb-2">Access Locked</h3>
+                                            <p className="mb-4">You have made too many incorrect attempts to enter a symbol number.</p>
+                                            <a href="https://wa.me/9826594548?text=I'm%20locked%20out%20of%20the%20quiz%20competition%20section." target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white font-bold py-2 px-4 rounded-full shadow-md mb-4">
+                                                <i className="fab fa-whatsapp"></i> Contact Support
+                                            </a>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <h3 className="text-2xl font-bold mb-2">Join the Competition!</h3>
+                                            <p className="mb-4">Enter your details to participate and appear on the leaderboard.</p>
+                                            <form onSubmit={handleJoin} className="flex flex-col gap-3">
+                                                <input type="text" name="userName" placeholder="Your Name" required className="p-2 border rounded" />
+                                                <input type="text" name="symbolNumber" placeholder="Symbol Number" required className="p-2 border rounded" />
+                                                {error && <p className="text-red-500 text-sm -mb-1">{error.message}</p>}
+                                                <button type="submit" className="gradient-button text-white font-bold py-2 px-6 rounded-full shadow-md mt-2">Join Now</button>
+                                            </form>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        <DownloadableResults id="results-to-download" />
+                    </div>
+                </section>
+            );
+        };
         
-        /**
-         * Resets the quiz to its initial state.
-         */
-        function resetQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            scoreText.textContent = "Score: 0";
-            nextButton.textContent = "Next Question";
-            nextButton.onclick = nextQuestion;
-            displayQuestion();
-        }
+        const ResourcesSection = () => {
+            const [showVideoModal, setShowVideoModal] = useState(false);
+            const youtubeVideoId = '4J06Ynw9x9I';
+            const premiumWhatsappLink = "https://wa.me/9826594548?text=" + encodeURIComponent("Thank you so much for your support! 🙏 I would also like to kindly request the premium materials (PDFs and quizzes) whenever possible.");
+            
+            return (
+                <section id="resources" className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                    <div className="container mx-auto">
+                        <h2 className="text-4xl font-extrabold text-center section-heading dark:text-red-400 mb-10 animate-fadeIn">Study Resources</h2>
+                        <div className="premium-header text-center mb-12 bg-gradient-to-r from-orange-500 to-amber-400 text-white p-6 rounded-2xl shadow-xl">
+                            <h4 className="text-3xl md:text-4xl font-extrabold mb-2">Unlock Your Full Potential!</h4>
+                            <p className="text-xl font-semibold mb-4">📚 What You Get:</p>
+                            <ul className="list-none p-0 text-left max-w-md mx-auto space-y-1">
+                                {['Access All given Below premium Materials','3 Books – Bridge Course, Grammar (2000+ MCQs)','2 maths books','Maths Formula','Full Chapterwise Notes','Expert Grammar & Math Tips','Advance MCQs + Past Year Questions','All College Past Papers','Daily Quiz + Live Quiz Every Tue & Sat','Mock Test every Saturday'].map((t,i)=>(
+                                    <li key={i} className="flex items-center"><i className="fas fa-check-circle text-yellow-200 mr-2"></i> ✅ {t}</li>
+                                ))}
+                            </ul>
+                            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+                                <a href={premiumWhatsappLink} target="_blank" rel="noopener noreferrer" className="gradient-button inline-block text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg uppercase tracking-wide">Get Premium Access <i className="fab fa-whatsapp ml-2"></i></a>
+                                <button onClick={() => setShowVideoModal(true)} className="bg-white text-blue-700 font-bold py-3 px-8 rounded-full shadow-lg text-lg uppercase tracking-wide hover:bg-gray-100 transition-colors duration-300">What is this? <i className="fas fa-play-circle ml-2"></i></button>
+                            </div>
+                        </div>
 
-        // Start the quiz
-        nextButton.onclick = nextQuestion;
-        displayQuestion();
+                        {showVideoModal && (
+                            <div className="overlay" onClick={() => setShowVideoModal(false)}>
+                                <div className="video-player-modal" onClick={e => e.stopPropagation()}>
+                                    <button onClick={() => setShowVideoModal(false)} className="close-button">&times;</button>
+                                    <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&modestbranding=1&rel=0`} title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {resources.map((cat, idx) => (
+                            <div key={idx} className="mb-12">
+                                <h3 className="text-3xl font-bold text-indigo-700 dark:text-indigo-300 mb-6 border-b-2 border-indigo-200 dark:border-indigo-800 pb-2 animate-fadeIn">{cat.category}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {cat.items.map((item, j) => (
+                                        <div key={j} className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg card-hover animate-fadeIn">
+                                            <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{item.title}</h4>
+                                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="inline-block gradient-button text-white font-bold py-2 px-4 rounded-full shadow-md text-sm">Access Material <i className="fas fa-external-link-alt ml-2"></i></a>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            );
+        };
 
+        const VideosSection = () => (
+            <section id="videos" className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-800">
+                <div className="container mx-auto">
+                    <h2 className="text-4xl font-extrabold text-center section-heading dark:text-red-400 mb-10 animate-fadeIn">Informative Videos</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {videos.map((video, idx) => (
+                            <div key={idx} className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg card-hover animate-fadeIn">
+                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{video.title}</h3>
+                                <a href={video.link} target="_blank" rel="noopener noreferrer" className="inline-block gradient-button text-white font-bold py-2 px-4 rounded-full shadow-md text-sm">Watch Video <i className="fas fa-play-circle ml-2"></i></a>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        );
+
+        const FAQsSection = () => {
+            const [open, setOpen] = useState(null);
+            return (
+                <section id="faqs" className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-800">
+                    <div className="container mx-auto">
+                        <h2 className="text-4xl font-extrabold text-center section-heading dark:text-red-400 mb-10 animate-fadeIn">Frequently Asked Questions</h2>
+                        {faqs.map((cat, ci) => (
+                            <div key={ci} className="mb-8 max-w-4xl mx-auto">
+                                <h3 className="text-3xl font-bold text-indigo-700 dark:text-indigo-300 mb-6 border-b-2 border-indigo-200 dark:border-indigo-800 pb-2">{cat.category}</h3>
+                                <div className="space-y-4">
+                                    {cat.items.map((f, fi) => (
+                                        <div key={fi} className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg card-hover">
+                                            <button className="flex justify-between items-center w-full text-left text-lg font-semibold text-gray-900 dark:text-white p-6" onClick={() => setOpen(open === `${ci}-${fi}` ? null : `${ci}-${fi}`)}>
+                                                <span>{f.question}</span>
+                                                <i className={`fas ${open === `${ci}-${fi}` ? 'fa-chevron-up' : 'fa-chevron-down'} text-indigo-500 transition-transform duration-300`}></i>
+                                            </button>
+                                            {open === `${ci}-${fi}` && (
+                                                <div className="px-6 pb-6 text-gray-700 dark:text-gray-300 leading-relaxed animate-fadeIn">{f.answer}</div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            );
+        };
+
+        const NoticeSection = () => {
+            const typeColors = { Announcement: "border-blue-500", Update: "border-green-500", Important: "border-red-500" };
+            const typeIcons = { Announcement: "fas fa-bullhorn", Update: "fas fa-info-circle", Important: "fas fa-exclamation-triangle" };
+            return (
+                <section id="notices" className="py-12 px-4 md:px-8 bg-gray-50 dark:bg-gray-800">
+                    <div className="container mx-auto">
+                        <h2 className="text-4xl font-extrabold text-center section-heading dark:text-red-400 mb-10 animate-fadeIn">Portal Notices</h2>
+                        <div className="space-y-6 max-w-4xl mx-auto">
+                            {notices.map((notice, index) => (
+                                <div key={notice.id} className={`bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg border-l-4 card-hover animate-fadeIn ${typeColors[notice.type]}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <i className={`${typeIcons[notice.type]} text-xl`}></i>
+                                            <h3 className="text-xl font-bold">{notice.title}</h3>
+                                        </div>
+                                        <p className="text-sm font-semibold opacity-80 mt-2 sm:mt-0">{notice.date}</p>
+                                    </div>
+                                    <p className="mt-2 text-base leading-relaxed">{notice.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const App = () => {
+            const [activeSection, setActiveSection] = useState('home');
+            const [userName, setUserName] = useState('');
+            const [isPremium, setIsPremium] = useState(false);
+            const [showNameInput, setShowNameInput] = useState(false);
+            const [key, forceUpdate] = useState(0);
+            const [visibleNotifications, setVisibleNotifications] = useState([]);
+
+            useEffect(() => {
+                let storedName = localStorage.getItem('balenUserName');
+                const competitionUser = getJSONFromLocalStorage('quizHubUser', null);
+                if (competitionUser) {
+                    storedName = competitionUser.name;
+                }
+                
+                if (storedName) {
+                    setUserName(storedName);
+                } else {
+                    setShowNameInput(true);
+                }
+                
+                if (!localStorage.getItem('balenAppStartDate')) {
+                    localStorage.setItem('balenAppStartDate', new Date().toISOString());
+                }
+
+                const dismissed = getJSONFromLocalStorage('dismissedNotifications', []);
+                setVisibleNotifications(siteNotifications.filter(n => !dismissed.includes(n.id)));
+                
+                setIsPremium(localStorage.getItem('balenPremiumUnlocked') === 'true');
+            }, []);
+
+            const dismissNotification = (id) => {
+                const dismissed = getJSONFromLocalStorage('dismissedNotifications', []);
+                localStorage.setItem('dismissedNotifications', JSON.stringify([...dismissed, id]));
+                setVisibleNotifications(current => current.filter(n => n.id !== id));
+            };
+
+            const handleNameSubmit = (e) => {
+                e.preventDefault();
+                const val = e.target.elements.userNameInput.value.trim();
+                if (val) {
+                    setUserName(val);
+                    localStorage.setItem('balenUserName', val);
+                    setShowNameInput(false);
+                }
+            };
+            
+            const renderSection = () => {
+                switch(activeSection) {
+                    case 'home': return <HomeSection setActiveSection={setActiveSection} userName={userName} />;
+                    case 'quizzes': return <QuizzesSection isPremium={isPremium} setIsPremium={setIsPremium} forceUpdate={forceUpdate} key={key} />;
+                    case 'competition': return <QuizCompetitionSection isPremium={isPremium} />;
+                    case 'resources': return <ResourcesSection />;
+                    case 'videos': return <VideosSection />;
+                    case 'notices': return <NoticeSection />;
+                    case 'faqs': return <FAQsSection />;
+                    default: return <HomeSection setActiveSection={setActiveSection} userName={userName} />;
+                }
+            }
+
+            return (
+                <Fragment>
+                    {showNameInput && (
+                        <div className="overlay">
+                            <div className="message-box text-gray-800 flex flex-col items-center">
+                                <h3 className="text-2xl font-bold mb-4">Welcome! What should we call you?</h3>
+                                <form onSubmit={handleNameSubmit} className="flex flex-col gap-4 w-full max-w-xs">
+                                    <input type="text" id="userNameInput" className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg" placeholder="Enter your name" required />
+                                    <button type="submit" className="gradient-button text-white font-bold py-3 px-6 rounded-full shadow-lg text-lg">Start Learning!</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                    <Header setActiveSection={setActiveSection} activeSection={activeSection} isPremium={isPremium} />
+                    <NotificationBanner notifications={visibleNotifications} onDismiss={dismissNotification} />
+                    <main>{renderSection()}</main>
+                    <Footer />
+                </Fragment>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
